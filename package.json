@@ -1,0 +1,37 @@
+{
+  "name": "functorfactory.com",
+  "version": "1.0.0",
+  "description": "Company website for Functor Factory",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
+  },
+  "packageManager": "pnpm@8.15.4",
+  "prettier": "@functorfactory/prettier-config",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FunctorFactory/functorfactory.com.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FunctorFactory/functorfactory.com/issues"
+  },
+  "keywords": [],
+  "author": "Jake Shilling <shilling.jake@gmail.com>",
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "@functorfactory/eslint-config": "^0.0.4",
+    "@functorfactory/prettier-config": "^0.0.3",
+    "eslint": "^8.57.0",
+    "pnpm": "8.15.4",
+    "prettier": "^3.2.5"
+  },
+  "dependencies": {
+    "next": "^14.1.0",
+    "nextra": "^2.13.3",
+    "nextra-theme-docs": "^2.13.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
