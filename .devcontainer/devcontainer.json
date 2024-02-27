@@ -1,18 +1,23 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
-  "name": "Node.js & TypeScript",
+  "name": "Ubuntu",
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "image": "mcr.microsoft.com/devcontainers/base:debian",
+  "image": "mcr.microsoft.com/devcontainers/base:jammy",
   "features": {
-    "ghcr.io/devcontainers/features/aws-cli:1": {},
-    "ghcr.io/devcontainers/features/terraform:1": {},
+    "ghcr.io/devcontainers/features/aws-cli:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "version": "1.7.3",
+      "terragrunt": "latest"
+    },
     "ghcr.io/joshuanianji/devcontainer-features/aws-cli-persistence:1": {},
-    "ghcr.io/joshuanianji/devcontainer-features/terraform-cli-persistence:1": {},
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20.11.0"
-    }
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   }
   // Features to add to the dev container. More info: https://containers.dev/features.
   // "features": {},
