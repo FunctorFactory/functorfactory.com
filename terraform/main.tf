@@ -37,8 +37,15 @@ data "github_repository" "repo" {
 }
 
 resource "github_actions_variable" "registry" {
-  depends_on = [ aws_ecr_repository.ecr ]
+  depends_on = [ data.github_repository.repo, aws_ecr_repository.ecr ]
   repository = data.github_repository.repo.name
   variable_name = "ECR_REGISTRY"
-  value = aws_ecr_repository.ecr.repository_url
+  value = aws_ecr_repository.ecr.name
+}
+
+resource "github_actions_variable" "region" {
+  depends_on = [ data.github_repository.repo ]
+  repository = data.github_repository.repo.name
+  variable_name = "AWS_REGION"
+  value = var.region
 }
