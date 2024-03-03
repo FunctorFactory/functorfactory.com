@@ -31,21 +31,3 @@ resource "aws_ecr_repository" "ecr" {
   force_delete         = true
   image_tag_mutability = "IMMUTABLE"
 }
-
-data "github_repository" "repo" {
-  full_name = var.github_repository
-}
-
-resource "github_actions_variable" "registry" {
-  depends_on = [ data.github_repository.repo, aws_ecr_repository.ecr ]
-  repository = data.github_repository.repo.name
-  variable_name = "ECR_REGISTRY"
-  value = aws_ecr_repository.ecr.name
-}
-
-resource "github_actions_variable" "region" {
-  depends_on = [ data.github_repository.repo ]
-  repository = data.github_repository.repo.name
-  variable_name = "AWS_REGION"
-  value = var.region
-}
