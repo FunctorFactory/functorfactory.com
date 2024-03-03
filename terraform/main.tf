@@ -4,17 +4,14 @@ terraform {
       source  = "hashicorp/aws"
       version = "5.38.0"
     }
-
-    github = {
-      source  = "integrations/github"
-      version = "6.0.0"
-    }
   }
 
-  backend "s3" {
-    bucket = "functor-factory-terraform"
-    key    = "functorfactory.com"
-    region = "us-east-1"
+  backend "remote" {
+    hostname     = "app.terraform.io"
+    organization = "FunctorFactory"
+    workspaces {
+      name = "Website"
+    }
   }
 }
 
