@@ -7,3 +7,8 @@ variable "project_name" {
   type    = string
   default = "functorfactory.com"
 }
+
+variable "domain" {
+  type = string
+  default = "functorfactory.com"
+}
