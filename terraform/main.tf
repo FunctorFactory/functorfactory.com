@@ -45,26 +45,26 @@ data "aws_iam_policy_document" "assume_role_policy" {
 }
 
 resource "aws_iam_role" "task-role" {
-  depends_on = [ data.aws_iam_policy_document.assume_role_policy ]
-  name = "${local.normal_project_name}-task-role"
+  depends_on         = [data.aws_iam_policy_document.assume_role_policy]
+  name               = "${local.normal_project_name}-task-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "task-role-policy" {
-  depends_on = [ aws_iam_role.task-role ]
+  depends_on = [aws_iam_role.task-role]
   role       = aws_iam_role.task-role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 resource "aws_ecs_task_definition" "task" {
-  depends_on = [ aws_iam_role.task-role ]
+  depends_on               = [aws_iam_role.task-role]
   family                   = local.normal_project_name
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "512"
-  execution_role_arn = aws_iam_role.task-role.arn
-  
+  execution_role_arn       = aws_iam_role.task-role.arn
+
   container_definitions = <<EOF
   [
     {
@@ -88,22 +88,22 @@ data "aws_availability_zones" "zones" {
   state = "available"
 
   filter {
-    name = "region-name"
+    name   = "region-name"
     values = [var.region]
   }
 }
 
 resource "aws_default_subnet" "subnets" {
-  depends_on = [ data.aws_availability_zones.zones ]
-  for_each = toset(data.aws_availability_zones.zones.names)
+  depends_on        = [data.aws_availability_zones.zones]
+  for_each          = toset(data.aws_availability_zones.zones.names)
   availability_zone = each.value
 }
 
 data "aws_subnets" "subnets" {
-  depends_on = [ aws_default_subnet.subnets ]
+  depends_on = [aws_default_subnet.subnets]
   filter {
-    name = "vpc-id"
-    values = [ aws_default_vpc.vpc.id ]
+    name   = "vpc-id"
+    values = [aws_default_vpc.vpc.id]
   }
 }
 
@@ -112,62 +112,87 @@ resource "aws_security_group" "lb-sg" {
 }
 
 resource "aws_security_group_rule" "lb-sg-ingress" {
-  depends_on = [ aws_security_group.lb-sg ]
+  depends_on        = [aws_security_group.lb-sg]
   security_group_id = aws_security_group.lb-sg.id
-  type = "ingress"
-  from_port   = 80
-  to_port     = 80
-  protocol    = "tcp"
-  cidr_blocks = ["0.0.0.0/0"]
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 resource "aws_security_group_rule" "lb-sg-egress" {
-  depends_on = [ aws_security_group.lb-sg ]
+  depends_on        = [aws_security_group.lb-sg]
   security_group_id = aws_security_group.lb-sg.id
-  type = "egress"
-  from_port   = 0
-  to_port     = 0
-  protocol    = "-1"
-  cidr_blocks = ["0.0.0.0/0"] 
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 resource "aws_alb" "lb" {
-  depends_on = [ aws_security_group.lb-sg, aws_default_subnet.subnets ]
-  name            = "${local.normal_project_name}-lb"
+  depends_on         = [aws_security_group.lb-sg, aws_default_subnet.subnets]
+  name               = "${local.normal_project_name}-lb"
   load_balancer_type = "application"
-  security_groups = [aws_security_group.lb-sg.id]
-  subnets = [ for subnet in aws_default_subnet.subnets : subnet.id ]
+  security_groups    = [aws_security_group.lb-sg.id]
+  subnets            = [for subnet in aws_default_subnet.subnets : subnet.id]
 }
 
 resource "aws_lb_target_group" "tg" {
-  depends_on = [ aws_alb.lb ]
-  name     = "${local.normal_project_name}-tg"
-  port     = 80
-  protocol = "HTTP"
+  depends_on  = [aws_alb.lb]
+  name        = "${local.normal_project_name}-tg"
+  port        = 80
+  protocol    = "HTTP"
   target_type = "ip"
-  vpc_id   = aws_default_vpc.vpc.id
+  vpc_id      = aws_default_vpc.vpc.id
+}
+
+data "aws_acm_certificate" "cert" {
+  domain      = var.domain
+  most_recent = true
 }
 
 resource "aws_lb_listener" "listener" {
+  depends_on = [data.aws_acm_certificate.cert]
+
   load_balancer_arn = aws_alb.lb.arn
-  port              = "80"
-  protocol          = "HTTP"
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = data.aws_acm_certificate.cert.arn
+
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.tg.arn
   }
 }
 
+resource "aws_lb_listener" "http-redirect" {
+  load_balancer_arn = aws_alb.lb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
 resource "aws_ecs_service" "ecs" {
-  name = local.normal_project_name
-  cluster = aws_ecs_cluster.cluster.id
+  name            = local.normal_project_name
+  cluster         = aws_ecs_cluster.cluster.id
   task_definition = aws_ecs_task_definition.task.arn
-  launch_type = "FARGATE"
-  desired_count = 1
+  launch_type     = "FARGATE"
+  desired_count   = 1
 
   network_configuration {
-    subnets = [ for subnet in data.aws_subnets.subnets.ids : subnet ]
-    security_groups = [aws_security_group.lb-sg.id]
+    subnets          = [for subnet in data.aws_subnets.subnets.ids : subnet]
+    security_groups  = [aws_security_group.lb-sg.id]
     assign_public_ip = true
   }
 
@@ -176,4 +201,28 @@ resource "aws_ecs_service" "ecs" {
     container_name   = aws_ecs_task_definition.task.family
     container_port   = 3000
   }
+}
+
+data "aws_route53_zone" "zone" {
+  name = var.domain
+}
+
+resource "aws_route53_record" "record" {
+  zone_id = data.aws_route53_zone.zone.zone_id
+  name    = var.domain
+  type    = "A"
+
+  alias {
+    name                   = aws_alb.lb.dns_name
+    zone_id                = aws_alb.lb.zone_id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "www" {
+  zone_id = data.aws_route53_zone.zone.zone_id
+  name    = "www.${var.domain}"
+  ttl = 300
+  type    = "CNAME"
+  records = [var.domain]
 }
