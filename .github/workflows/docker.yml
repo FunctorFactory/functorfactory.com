@@ -29,8 +29,8 @@ jobs:
                   REPOSITORY: ${{ vars.ECR_REGISTRY }}
                   IAMGE_TAG: ${{ github.sha }}
               run: |
-                docker build -t $REGISTRY/$REPOSITORY:$IAMGE_TAG .
-                docker push $REGISTRY/$REPOSITORY:$IAMGE_TAG
+                docker build -t $REGISTRY/$REPOSITORY:latest .
+                docker push $REGISTRY/$REPOSITORY:latest
             - name: Build Docker Image
               if: github.ref != 'refs/heads/main'
               run: |
