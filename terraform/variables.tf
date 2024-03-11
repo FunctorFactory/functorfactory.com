@@ -3,7 +3,7 @@ variable "region" {
   default = "us-east-1"
 }
 
-variable "github_repository" {
+variable "project_name" {
   type    = string
-  default = "FunctorFactory/functorfactory.com"
+  default = "functorfactory.com"
 }
