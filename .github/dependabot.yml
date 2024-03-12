@@ -22,4 +22,3 @@ updates:
     directory: '/'
     schedule:
       interval: weekly
-
