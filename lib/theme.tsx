@@ -1,4 +1,5 @@
 import { Montserrat } from 'next/font/google';
+import type { CustomFlowbiteTheme } from 'flowbite-react';
 
 export const MontserratBlack = Montserrat({
     subsets: ['latin'],
@@ -10,3 +11,5 @@ export const MontserratRegular = Montserrat({
     weight: "400",
 });
 
+export const Theme: CustomFlowbiteTheme = {
+};

@@ -3,7 +3,11 @@ import './globals.css';
 import type { Metadata } from 'next';
 import React from 'react';
 
-import { MontserratRegular } from '@/lib/theme';
+import { MontserratRegular, MontserratBlack } from '../lib/theme';
+import Logo from '../components/Logo';
+import Link from 'next/link';
+import { Flowbite, Navbar, NavbarBrand, NavbarToggle, NavbarCollapse, NavbarLink } from 'flowbite-react';
+import { Theme } from '../lib/theme';
 
 export const metadata: Metadata = {
   title: 'Functor Factory',
@@ -20,7 +24,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={MontserratRegular.className}>{children}</body>
+      <Flowbite theme={{ theme: Theme }}>
+        <body className={MontserratRegular.className}>
+          <Navbar fluid rounded className={MontserratBlack.className}>
+            <NavbarBrand as={Link} href="/">
+              <Logo width={250} alt='Functor Factory'></Logo>
+            </NavbarBrand>
+            <NavbarToggle />
+            <NavbarCollapse>
+              <NavbarLink as={Link} href="/learn">Learning Resources</NavbarLink>
+              <NavbarLink as={Link} href="/about">About</NavbarLink>
+              <NavbarLink as={Link} href="/contact">Contact</NavbarLink>
+            </NavbarCollapse>
+          </Navbar>
+          {children}
+        </body>
+      </Flowbite>
     </html>
   );
 }
