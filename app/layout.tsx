@@ -3,11 +3,13 @@ import './globals.css';
 import type { Metadata } from 'next';
 import React from 'react';
 
-import { MontserratRegular, MontserratBlack } from '../lib/theme';
-import Logo from '../components/Logo';
-import Link from 'next/link';
-import { Flowbite, Navbar, NavbarBrand, NavbarToggle, NavbarCollapse, NavbarLink } from 'flowbite-react';
-import { Theme } from '../lib/theme';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
+import { ThemeProvider } from '@mui/material/styles';
+import { theme } from '@/lib/theme';
+
+import { AppHeader } from '@/components/AppHeader';
+import { Box, Container, CssBaseline, List, Paper, Stack, Typography, Divider, ListItem, ListItemText } from '@mui/material';
+import AppFooter from '@/components/AppFooter';
 
 export const metadata: Metadata = {
   title: 'Functor Factory',
@@ -24,22 +26,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <Flowbite theme={{ theme: Theme }}>
-        <body className={MontserratRegular.className}>
-          <Navbar fluid rounded className={MontserratBlack.className}>
-            <NavbarBrand as={Link} href="/">
-              <Logo width={250} alt='Functor Factory'></Logo>
-            </NavbarBrand>
-            <NavbarToggle />
-            <NavbarCollapse>
-              <NavbarLink as={Link} href="/learn">Learning Resources</NavbarLink>
-              <NavbarLink as={Link} href="/about">About</NavbarLink>
-              <NavbarLink as={Link} href="/contact">Contact</NavbarLink>
-            </NavbarCollapse>
-          </Navbar>
-          {children}
-        </body>
-      </Flowbite>
+      <body>
+        <AppRouterCacheProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <AppHeader />
+            {children}
+            <AppFooter />
+          </ThemeProvider>
+        </AppRouterCacheProvider>
+      </body>
     </html>
   );
 }

@@ -1,7 +1,7 @@
 import React from "react";
 
 import Image from 'next/image';
-import LogoSvg from '@/public/logo.svg';
+import LogoSvg from '@/public/Functor-Logo-White.svg';
 
 export type LogoProps = Omit<Parameters<typeof Image>[0], 'src'>;
 
