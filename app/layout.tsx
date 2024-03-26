@@ -10,6 +10,7 @@ import { theme } from '@/lib/theme';
 import { AppHeader } from '@/components/AppHeader';
 import { Box, Container, CssBaseline, List, Paper, Stack, Typography, Divider, ListItem, ListItemText } from '@mui/material';
 import AppFooter from '@/components/AppFooter';
+import Banner from '@/components/Banner';
 
 export const metadata: Metadata = {
   title: 'Functor Factory',
@@ -31,6 +32,7 @@ export default function RootLayout({
           <ThemeProvider theme={theme}>
             <CssBaseline />
             <AppHeader />
+            <Banner alt='' style={{ width: '100%', height: 'auto' }} />
             {children}
             <AppFooter />
           </ThemeProvider>
