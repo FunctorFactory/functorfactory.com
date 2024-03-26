@@ -20,6 +20,8 @@ const pages = [
 
 export const AppHeader = () => {
     const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+    const [top, setTop] = React.useState<number>(0);
+    const ref = React.useRef<HTMLElement>(null);
 
     const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElNav(event.currentTarget);
@@ -29,8 +31,27 @@ export const AppHeader = () => {
         setAnchorElNav(null);
     };
 
+    const updateHeaderPosition = () => {
+        if (ref.current) {
+            const height = ref.current.clientHeight;
+            if (document.body.scrollTop > height || document.documentElement.scrollTop > height) {
+                setTop(0);
+            } else {
+                setTop(-height);
+            }
+        }
+    }
+
+    React.useEffect(() => {
+        window.addEventListener('scroll', updateHeaderPosition);
+    }, []);
+
+    React.useEffect(() => {
+        updateHeaderPosition();
+    }, [ref.current]);
+
     return (
-        <MuiAppBar position="static">
+        <MuiAppBar ref={ref} position="fixed" style={{ top: `${top}px`, transition: 'top 0.3s' }}>
             <Container maxWidth="xl">
                 <Toolbar disableGutters>
                     <Box sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }}>
