@@ -13,6 +13,7 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/X';
 
 import NextLink from 'next/link';
+import * as Links from '@/lib/Links';
 
 const logoStyle = {
     width: '140px',
@@ -98,14 +99,11 @@ export const AppFooter = () => {
                     <Typography variant="body2" fontWeight={600}>
                         Contact
                     </Typography>
-                    <Link component={NextLink} color="text.secondary" href="mailto:jshilling@functorfactory.com">
+                    <Link component={NextLink} color="text.secondary" href={Links.Email}>
                         Email
                     </Link>
-                    <Link component={NextLink} color="text.secondary" href="https://calendly.com/functorfactory/30min">
+                    <Link component={NextLink} color="text.secondary" href={Links.Calendarly}>
                         Book a Call
-                    </Link>
-                    <Link component={NextLink} color="text.secondary" href="https://www.upwork.com/agencies/1730726828491841536/">
-                        UpWork
                     </Link>
                 </Box>
                 <Stack
@@ -119,7 +117,7 @@ export const AppFooter = () => {
                 >
                     <IconButton
                         color="inherit"
-                        href="https://github.com/FunctorFactory"
+                        href={Links.Github}
                         aria-label="GitHub"
                         sx={{ alignSelf: 'center' }}
                     >
@@ -127,7 +125,7 @@ export const AppFooter = () => {
                     </IconButton>
                     <IconButton
                         color="inherit"
-                        href="https://twitter.com/FunctorFactory"
+                        href={Links.Twitter}
                         aria-label="X"
                         sx={{ alignSelf: 'center' }}
                     >
@@ -135,7 +133,7 @@ export const AppFooter = () => {
                     </IconButton>
                     <IconButton
                         color="inherit"
-                        href="https://www.linkedin.com/company/functor-factory"
+                        href={Links.LinkedIn}
                         aria-label="LinkedIn"
                         sx={{ alignSelf: 'center' }}
                     >
