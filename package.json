@@ -4,7 +4,7 @@
   "description": "Company website for Functor Factory",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 0.0.0.0 -p 3000",
     "build": "next build",
     "start": "next start",
     "format": "prettier --write .",
