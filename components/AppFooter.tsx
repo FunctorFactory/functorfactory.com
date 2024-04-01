@@ -1,36 +1,17 @@
 import GithubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/X';
+import YouTubeIcon from '@mui/icons-material/YouTube';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import NextLink from 'next/link';
 import * as React from 'react';
 
 import * as Links from '@/lib/Links';
-
-const logoStyle = {
-  width: '140px',
-  height: 'auto',
-};
-
-/**
- *
- */
-function Copyright() {
-  return (
-    <Typography variant="body2" color="text.secondary" mt={1}>
-      {'Copyright © '}
-      <Link href="https://mui.com/">Sitemark&nbsp;</Link>
-      {new Date().getFullYear()}
-    </Typography>
-  );
-}
+import { ServiceDescriptions } from '@/lib/Services';
 
 export const AppFooter = () => {
   return (
@@ -64,15 +45,11 @@ export const AppFooter = () => {
           <Typography variant="body2" fontWeight={600}>
             Services
           </Typography>
-          <Link color="text.secondary" href="#">
-            One
-          </Link>
-          <Link color="text.secondary" href="#">
-            Two
-          </Link>
-          <Link color="text.secondary" href="#">
-            Three
-          </Link>
+          {ServiceDescriptions.map((desc, idx) => (
+            <Link key={idx} color="text.secondary" href={desc.href}>
+              {desc.title}
+            </Link>
+          ))}
         </Box>
         <Box
           sx={{
@@ -84,10 +61,10 @@ export const AppFooter = () => {
           <Typography variant="body2" fontWeight={600}>
             Company
           </Typography>
-          <Link color="text.secondary" href="#">
+          <Link color="text.secondary" href="/about">
             About us
           </Link>
-          <Link color="text.secondary" href="#">
+          <Link color="text.secondary" href="/process">
             Our Process
           </Link>
         </Box>
@@ -101,11 +78,10 @@ export const AppFooter = () => {
           <Typography variant="body2" fontWeight={600}>
             Contact
           </Typography>
-          <Link component={NextLink} color="text.secondary" href={Links.Email}>
+          <Link color="text.secondary" href={Links.Email}>
             Email
           </Link>
           <Link
-            component={NextLink}
             color="text.secondary"
             href={Links.Calendarly}
           >
@@ -144,6 +120,14 @@ export const AppFooter = () => {
             sx={{ alignSelf: 'center' }}
           >
             <LinkedInIcon />
+          </IconButton>
+          <IconButton
+            color="inherit"
+            href={Links.YouTube}
+            aria-label="Youtube"
+            sx={{ alignSelf: 'center' }}
+          >
+            <YouTubeIcon />
           </IconButton>
         </Stack>
       </Box>
