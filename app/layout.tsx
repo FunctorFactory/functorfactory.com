@@ -1,16 +1,7 @@
 import './globals.css';
 
 import {
-  Box,
-  Container,
   CssBaseline,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Stack,
-  Typography,
 } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
@@ -20,7 +11,7 @@ import React from 'react';
 import AppFooter from '@/components/AppFooter';
 import { AppHeader } from '@/components/AppHeader';
 import Banner from '@/components/Banner';
-import { theme } from '@/lib/theme';
+import { theme } from '@/lib/Theme';
 
 export const metadata: Metadata = {
   title: 'Functor Factory',
@@ -46,8 +37,9 @@ export default function RootLayout({
         <AppRouterCacheProvider>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            <AppHeader />
             <Banner alt="" style={{ width: '100%', height: 'auto' }} />
+            <AppHeader />
+
             {children}
             <AppFooter />
           </ThemeProvider>
