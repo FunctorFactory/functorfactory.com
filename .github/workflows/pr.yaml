@@ -3,13 +3,13 @@ name: Verify PR
 on:
   pull_request:
     types: [opened, synchronized, reopened]
-  paths:
-    - 'package.json'
-    - 'pnpm-lock.yaml'
-    - 'pnpm-workspace.yaml'
-    - 'eslint.config.js'
-    - 'tsconfig.json'
-    - '**.ts'
+    paths:
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'eslint.config.js'
+      - 'tsconfig.json'
+      - '**.ts'
   workflow_dispatch:
 
 jobs:
