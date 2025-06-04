@@ -23,64 +23,9 @@ provider "aws" {
   region = var.region
 }
 
-resource "aws_ecr_repository" "ecr" {
-  name                 = var.project_name
-  force_delete         = true
-  image_tag_mutability = "MUTABLE"
-}
-
-resource "aws_ecs_cluster" "cluster" {
-  name = local.normal_project_name
-}
-
-data "aws_iam_policy_document" "assume_role_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    effect  = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["ecs-tasks.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role" "task-role" {
-  depends_on         = [data.aws_iam_policy_document.assume_role_policy]
-  name               = "${local.normal_project_name}-task-role"
-  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
-}
-
-resource "aws_iam_role_policy_attachment" "task-role-policy" {
-  depends_on = [aws_iam_role.task-role]
-  role       = aws_iam_role.task-role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-resource "aws_ecs_task_definition" "task" {
-  depends_on               = [aws_iam_role.task-role]
-  family                   = local.normal_project_name
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
-  memory                   = "512"
-  execution_role_arn       = aws_iam_role.task-role.arn
-
-  container_definitions = <<EOF
-  [
-    {
-      "name": "${local.normal_project_name}",
-      "image": "${aws_ecr_repository.ecr.repository_url}",
-      "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 3000,
-          "hostPort": 3000
-        }
-      ]
-    }
-  ]
-  EOF
-}
+###############################################################################
+#                                     VPC                                     #
+###############################################################################
 
 resource "aws_default_vpc" "vpc" {}
 
@@ -107,100 +52,120 @@ data "aws_subnets" "subnets" {
   }
 }
 
-resource "aws_security_group" "lb-sg" {
-  name = "${local.normal_project_name}-lb-sg"
+###############################################################################
+#                                      S3                                     #
+###############################################################################
+
+resource "aws_s3_bucket" "s3" {
+  bucket = var.domain
 }
 
-resource "aws_security_group_rule" "lb-sg-ingress" {
-  depends_on        = [aws_security_group.lb-sg]
-  security_group_id = aws_security_group.lb-sg.id
-  type              = "ingress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
+resource "aws_s3_bucket_ownership_controls" "controls" {
+  bucket = aws_s3_bucket.s3.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
 }
 
-resource "aws_security_group_rule" "lb-sg-egress" {
-  depends_on        = [aws_security_group.lb-sg]
-  security_group_id = aws_security_group.lb-sg.id
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
+resource "aws_s3_bucket_public_access_block" "public" {
+  bucket = aws_s3_bucket.s3.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
 }
 
-resource "aws_alb" "lb" {
-  depends_on         = [aws_security_group.lb-sg, aws_default_subnet.subnets]
-  name               = "${local.normal_project_name}-lb"
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.lb-sg.id]
-  subnets            = [for subnet in aws_default_subnet.subnets : subnet.id]
+resource "aws_s3_bucket_acl" "acl" {
+  depends_on = [
+    aws_s3_bucket_ownership_controls.controls,
+    aws_s3_bucket_public_access_block.public,
+  ]
+
+  bucket = aws_s3_bucket.s3.id
+  acl    = "public-read"
 }
 
-resource "aws_lb_target_group" "tg" {
-  depends_on  = [aws_alb.lb]
-  name        = "${local.normal_project_name}-tg"
-  port        = 80
-  protocol    = "HTTP"
-  target_type = "ip"
-  vpc_id      = aws_default_vpc.vpc.id
+data "aws_iam_policy_document" "policy" {
+  statement {
+    sid = "PublicReadGetObject"
+
+    principals {
+      type = "*"
+      identifiers = ["*"]
+    }
+
+    actions = [
+      "s3:GetObject",
+    ]
+
+    resources = [
+      aws_s3_bucket.s3.arn,
+      "${aws_s3_bucket.s3.arn}/*",
+    ]
+  }
+}
+
+resource "aws_s3_bucket_policy" "policy" {
+  bucket = aws_s3_bucket.s3.id
+  policy = data.aws_iam_policy_document.policy.json
+}
+
+###############################################################################
+#                                  CloudFront                                 #
+###############################################################################
+
+resource "aws_cloudfront_distribution" "cdn" {
+  origin {
+    origin_id   = "${var.domain}"
+    domain_name = aws_s3_bucket.s3.bucket_regional_domain_name
+  }
+
+  aliases = ["${var.domain}"]
+
+  enabled             = true
+  is_ipv6_enabled = false
+  default_root_object = "index.html"
+
+  default_cache_behavior {
+    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "${var.domain}"
+
+    forwarded_values {
+      query_string = true
+      cookies {
+        forward = "none"
+      }
+    }
+
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+    compress = true
+
+  }
+
+  price_class = "PriceClass_100"
+
+  # This is required to be specified even if it's not used.
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+      locations        = []
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn = data.aws_acm_certificate.cert.arn
+    ssl_support_method = "sni-only"
+  }
 }
 
 data "aws_acm_certificate" "cert" {
   domain      = var.domain
   most_recent = true
-}
-
-resource "aws_lb_listener" "listener" {
-  depends_on = [data.aws_acm_certificate.cert]
-
-  load_balancer_arn = aws_alb.lb.arn
-  port              = "443"
-  protocol          = "HTTPS"
-  ssl_policy = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = data.aws_acm_certificate.cert.arn
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.tg.arn
-  }
-}
-
-resource "aws_lb_listener" "http-redirect" {
-  load_balancer_arn = aws_alb.lb.arn
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    type = "redirect"
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
-  }
-}
-
-resource "aws_ecs_service" "ecs" {
-  name            = local.normal_project_name
-  cluster         = aws_ecs_cluster.cluster.id
-  task_definition = aws_ecs_task_definition.task.arn
-  launch_type     = "FARGATE"
-  desired_count   = 1
-
-  network_configuration {
-    subnets          = [for subnet in data.aws_subnets.subnets.ids : subnet]
-    security_groups  = [aws_security_group.lb-sg.id]
-    assign_public_ip = true
-  }
-
-  load_balancer {
-    target_group_arn = aws_lb_target_group.tg.arn
-    container_name   = aws_ecs_task_definition.task.family
-    container_port   = 3000
-  }
 }
 
 data "aws_route53_zone" "zone" {
@@ -213,8 +178,8 @@ resource "aws_route53_record" "record" {
   type    = "A"
 
   alias {
-    name                   = aws_alb.lb.dns_name
-    zone_id                = aws_alb.lb.zone_id
+    name                   = aws_cloudfront_distribution.cdn.domain_name
+    zone_id                = aws_cloudfront_distribution.cdn.hosted_zone_id
     evaluate_target_health = true
   }
 }
