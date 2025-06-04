@@ -1,17 +1,7 @@
 import './globals.css';
 
-import {
-  CssBaseline,
-} from '@mui/material';
-import { ThemeProvider } from '@mui/material/styles';
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import type { Metadata } from 'next';
 import React from 'react';
-
-import AppFooter from '@/components/AppFooter';
-import { AppHeader } from '@/components/AppHeader';
-import Banner from '@/components/Banner';
-import { theme } from '@/lib/Theme';
 
 export const metadata: Metadata = {
   title: 'Functor Factory',
@@ -21,11 +11,6 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- *
- * @param root0
- * @param root0.children
- */
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,18 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <AppRouterCacheProvider>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <Banner alt="" style={{ width: '100%', height: 'auto' }} />
-            <AppHeader />
-
-            {children}
-            <AppFooter />
-          </ThemeProvider>
-        </AppRouterCacheProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
