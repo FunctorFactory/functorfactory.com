@@ -33,7 +33,7 @@
     "@functorfactory/eslint-config": "^0.3.1",
     "@functorfactory/prettier-config": "^0.1.0",
     "@next/eslint-plugin-next": "^15.3.3",
-    "@types/node": "^22.15.29",
+    "@types/node": "^22.15.30",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.6",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
